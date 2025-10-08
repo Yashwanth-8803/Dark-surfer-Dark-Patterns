@@ -1,0 +1,3 @@
+@echo off
+echo Starting Dark Pattern Classifier Streamlit App...
+python run_streamlit_fixed.py

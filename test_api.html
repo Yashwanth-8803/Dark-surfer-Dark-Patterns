@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dark Pattern API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Dark Pattern API</h1>
+    <p>This page tests the connection to the Flask API server.</p>
+    
+    <h2>Enter text to analyze:</h2>
+    <textarea id="textInput">Only 2 items left in stock! Order now before they're gone!</textarea>
+    
+    <button id="testButton">Test API Connection</button>
+    
+    <div id="result">
+        <p>Results will appear here...</p>
+    </div>
+    
+    <script>
+        document.getElementById('testButton').addEventListener('click', function() {
+            const text = document.getElementById('textInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = '<p>Sending request to API...</p>';
+            
+            fetch('http://localhost:5000/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ tokens: [text] }),
+                mode: 'cors'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API Response:', data);
+                
+                let html = '<h3 class="success">API Connection Successful!</h3>';
+                html += '<p>Response from API:</p>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.result && data.result[0] !== 'Not Dark') {
+                    html += '<p>Dark Pattern Detected: <strong>' + data.result[0] + '</strong></p>';
+                } else {
+                    html += '<p>No Dark Pattern Detected</p>';
+                }
+                
+                resultDiv.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <h3 class="error">API Connection Failed!</h3>
+                    <p>Error: ${error.message}</p>
+                    <p>Make sure the Flask API server is running on http://localhost:5000</p>
+                    <p>Run the following command to start the API server:</p>
+                    <pre>cd api && python app.py</pre>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>
